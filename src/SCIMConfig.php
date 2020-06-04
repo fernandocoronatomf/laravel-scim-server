@@ -7,14 +7,18 @@ use ArieTimmerman\Laravel\SCIMServer\SCIM\Schema;
 
 class SCIMConfig
 {
+    /**
+     * @param $name
+     * @return array
+     */
     public function getConfigForResource($name)
     {
         if ($name == 'Users') {
             return $this->getUserConfig();
-        } else {
-            $result = $this->getConfig();
-            return @$result[$name];
         }
+
+        $result = $this->getConfig();
+        return @$result[$name];
     }
 
     public function getUserConfig()
@@ -25,7 +29,6 @@ class SCIMConfig
             'class' => Helper::getAuthUserClass(),
 
             'validations' => [
-
                 'urn:ietf:params:scim:schemas:core:2.0:User:userName' => 'required',
                 'urn:ietf:params:scim:schemas:core:2.0:User:password' => 'nullable',
                 'urn:ietf:params:scim:schemas:core:2.0:User:active' => 'boolean',
@@ -33,7 +36,9 @@ class SCIMConfig
                 'urn:ietf:params:scim:schemas:core:2.0:User:emails.*.value' => 'required|email',
                 'urn:ietf:params:scim:schemas:core:2.0:User:roles' => 'nullable|array',
                 'urn:ietf:params:scim:schemas:core:2.0:User:roles.*.value' => 'required',
-
+                'urn:ietf:params:scim:schemas:core:2.0:User:name.familyName' => 'required',
+                'urn:ietf:params:scim:schemas:core:2.0:User:name.givenName' => 'required',
+                'urn:ietf:params:scim:schemas:core:2.0:User:externalId' => 'required',
             ],
 
             'singular' => 'User',
@@ -42,7 +47,7 @@ class SCIMConfig
             //eager loading
             'withRelations' => [],
             'map_unmapped' => true,
-            'unmapped_namespace' => 'urn:ietf:params:scim:schemas:laravel:unmapped',
+            'unmapped_namespace' => 'urn:ietf:params:scim:schemas:whispli:unmapped',
             'description' => 'User Account',
 
             // Map a SCIM attribute to an attribute of the object.
@@ -50,7 +55,7 @@ class SCIMConfig
 
                 'id' => AttributeMapping::eloquent("id")->disableWrite(),
 
-                'externalId' => null,
+                'externalId' => AttributeMapping::eloquent('saml_uid'),
 
                 'meta' => [
                     'created' => AttributeMapping::eloquent("created_at")->disableWrite(),
@@ -77,7 +82,9 @@ class SCIMConfig
 
                 'urn:ietf:params:scim:schemas:core:2.0:User' => [
 
-                    'userName' => null,
+                    'userName' => AttributeMapping::eloquent("email"),
+
+                    'first_name' => AttributeMapping::eloquent("first_name"),
 
                     'name' => [
                         'formatted' => AttributeMapping::eloquent("full_name"),
@@ -118,10 +125,7 @@ class SCIMConfig
     public function getConfig()
     {
         return [
-
-            'Users' => $this->getUserConfig()
-        ]
-
-            ;
+            'Users' => $this->getUserConfig(),
+        ];
     }
 }

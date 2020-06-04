@@ -19,7 +19,7 @@ class Helper
 {
     public static function getAuthUserClass()
     {
-        return config('auth.providers.users.model');
+        return config('scim.user.class');
     }
 
     /**
@@ -46,12 +46,12 @@ class Helper
 
         return $result;
     }
-    
+
     // TODO: Auto map eloquent attributes with scim naming to the correct attributes
     public static function objectToSCIMArray($object, ResourceType $resourceType = null)
     {
         $userArray = $object->toArray();
-        
+
         // If the getDates-method exists, ensure proper formatting of date attributes
         if (method_exists($object, 'getDates')) {
             $dateAttributes = $object->getDates();
@@ -110,7 +110,7 @@ class Helper
         } else {
             $version = sha1($object->getKey() . $object->updated_at . $object->created_at);
         }
-        
+
         // Entity tags uniquely representing the requested resources. They are a string of ASCII characters placed between double quotes
         return sprintf('W/"%s"', $version);
     }
@@ -138,7 +138,7 @@ class Helper
      */
     public static function scimFilterToLaravelQuery(ResourceType $resourceType, &$query, $node)
     {
-         
+
         //var_dump($node);exit;
 
         if ($node instanceof Negation) {
@@ -164,8 +164,8 @@ class Helper
                 });
             }
         } elseif ($node instanceof ValuePath) {
-            
-                
+
+
             // ->filer
             $getAttributePath = function () {
                 return $this->attributePath;
@@ -180,8 +180,8 @@ class Helper
                     ->from('users AS users2')
                     ->whereRaw('users.id = users2.id');
             });
-                    
-                    
+
+
         //$node->
         } elseif ($node instanceof Factor) {
             var_dump($node);
@@ -212,7 +212,7 @@ class Helper
         $scimAttribute = preg_replace('/\.[0-9]+\./', '.', $scimAttribute);
 
         $path = $parser->parse($scimAttribute);
-        
+
         //TODO: FIX this. If $scimAttribute is a schema-indication, it should be considered as a schema
         if ($scimAttribute == 'urn:ietf:params:scim:schemas:core:2.0:User') {
             $attributePath = new AttributePath();
@@ -288,7 +288,7 @@ class Helper
 
                 $result[$final][$key] = $value;
             } elseif (is_array($value)) {
-                
+
                 //Empty values do matter. For example in case of empty-ing a multi-valued attribute via PUT/replace
                 if (empty($value)) {
                     $partsCopy = $parts;
